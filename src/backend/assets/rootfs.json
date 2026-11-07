@@ -1,6 +1,7 @@
 {
-  "sha256": "7460b81081fd8fffeb7a40f1b0ecbe7e39efaaf307242c1b654ea4a42efcdb65",
+  "sha256": "2b17d7f5495525a6e7374507ff0b5cef6756abbc70ead4574dae9593c48576e7",
   "urls": [
-    "https://releases.butterfly.so/rootfs/7460b81081fd8fffeb7a40f1b0ecbe7e39efaaf307242c1b654ea4a42efcdb65/pond-rootfs.tar.zst"
+    "https://github.com/cylexVEVO/pond-pkgbuilds/releases/download/rootfs-1.0.0/pond-rootfs.tar.zst.part-00",
+    "https://github.com/cylexVEVO/pond-pkgbuilds/releases/download/rootfs-1.0.0/pond-rootfs.tar.zst.part-01"
   ]
 }
