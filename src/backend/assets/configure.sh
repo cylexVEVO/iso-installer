@@ -11,6 +11,9 @@ printf '%s\n' "$POND_HOSTNAME" > /etc/hostname
 
 pacman-key --init
 pacman-key --populate archlinux pond
+if [[ -f /usr/share/pacman/keyrings/pond-custom.gpg ]]; then
+    pacman-key --populate pond-custom
+fi
 
 useradd -m -G wheel,audio "$POND_USERNAME"
 

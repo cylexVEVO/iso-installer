@@ -32,3 +32,16 @@ make iso
 ```
 
 Pond Gramercy is proprietary and is not included in this repository. You don't need it to build and test the ISO.
+## Custom cylexVEVO image
+
+The installed desktop is pinned by `src/backend/assets/rootfs.json`, which contains
+ordered HTTPS download URLs and the SHA-256 of their concatenation. Downloads may
+be split into GitHub Release assets; the complete archive is verified before extraction.
+
+Build the signed replacement repository and target rootfs using
+[cylexVEVO/pond-pkgbuilds](https://github.com/cylexVEVO/pond-pkgbuilds/tree/custom-pond/custom).
+Then run `python3 scripts/use-rootfs.py /path/to/rootfs.json`, `make check`, and
+`make iso VERSION=1.0.0`. `VERSION` labels the ISO; the manifest selects the desktop.
+The target rootfs must carry its repository config, public signing key, packages,
+and `/etc/skel` defaults. The live profile's pacman configuration does not configure
+the installed system. The installer populates the custom keyring before upgrading.

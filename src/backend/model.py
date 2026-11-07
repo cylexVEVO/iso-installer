@@ -3,7 +3,9 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
+import json
 import re
+from urllib.parse import urlsplit
 
 USERNAME = re.compile(r"[a-z_][a-z0-9_-]{0,31}")
 HOSTNAME = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?")
@@ -16,8 +18,25 @@ ESP_BYTES = 512 * MIB
 ESP_TYPE = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
 ROOT_TYPE = "0fc63daf-8483-4772-8e79-3d69d8477de4"
 BIOS_TYPE = "21686148-6449-6e6f-744e-656564454649"
-ROOTFS_SHA256 = "7460b81081fd8fffeb7a40f1b0ecbe7e39efaaf307242c1b654ea4a42efcdb65"
-ROOTFS_URL = f"https://releases.butterfly.so/rootfs/{ROOTFS_SHA256}/pond-rootfs.tar.zst"
+
+
+def load_rootfs_manifest(path):
+    manifest = json.loads(Path(path).read_text())
+    sha256, urls = manifest["sha256"], manifest["urls"]
+    if not isinstance(sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", sha256):
+        raise ValueError("Rootfs manifest requires an exact SHA-256")
+    if not isinstance(urls, list) or not 1 <= len(urls) <= 16:
+        raise ValueError("Rootfs manifest requires one to sixteen download URLs")
+    for url in urls:
+        if not isinstance(url, str):
+            raise ValueError("Invalid rootfs URL")
+        parsed = urlsplit(url)
+        if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password or parsed.fragment:
+            raise ValueError("Rootfs URLs must use HTTPS without credentials or fragments")
+    return sha256, tuple(urls)
+
+
+ROOTFS_SHA256, ROOTFS_URLS = load_rootfs_manifest(Path(__file__).parent / "assets/rootfs.json")
 SUBVOLUMES = (
     ("@", "/"), ("@home", "/home"), ("@root", "/root"), ("@srv", "/srv"),
     ("@log", "/var/log"), ("@cache", "/var/cache"), ("@tmp", "/var/tmp"),

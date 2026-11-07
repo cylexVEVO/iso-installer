@@ -50,3 +50,4 @@ check:
 	bash -n archiso/airootfs/etc/skel/.bash_profile
 	sh -n archiso/airootfs/usr/local/bin/pond-installer
 	git diff --check
+	python3 -m unittest discover -s tests

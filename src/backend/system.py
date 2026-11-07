@@ -8,7 +8,7 @@ import sys
 import time
 
 from .command import run
-from .model import InstallError, ROOTFS_SHA256, ROOTFS_URL, SUBVOLUMES
+from .model import InstallError, ROOTFS_SHA256, ROOTFS_URLS, SUBVOLUMES
 
 ASSETS = Path(__file__).parent / "assets"
 
@@ -23,8 +23,21 @@ def verify_rootfs(archive):
 def fetch_rootfs(directory: Path) -> Path:
     """Download into caller-owned scratch space; installation verifies the checksum."""
     path = Path(directory) / "pond-rootfs.tar.zst"
-    run(["curl", "--fail", "--location", "--proto", "=https", "--retry", "3",
-         "--retry-all-errors", "--speed-limit", "1024", "--speed-time", "60", "--remove-on-error", "--progress-bar", "--output", str(path), ROOTFS_URL], stderr=sys.stderr)
+    part = Path(directory) / "pond-rootfs.download"
+    try:
+        with path.open("wb") as output:
+            for url in ROOTFS_URLS:
+                run(["curl", "--fail", "--location", "--proto", "=https", "--proto-redir", "=https",
+                     "--retry", "3", "--retry-all-errors", "--speed-limit", "1024", "--speed-time", "60",
+                     "--remove-on-error", "--progress-bar", "--output", str(part), url], stderr=sys.stderr)
+                with part.open("rb") as source:
+                    shutil.copyfileobj(source, output)
+                part.unlink()
+    except BaseException:
+        path.unlink(missing_ok=True)
+        raise
+    finally:
+        part.unlink(missing_ok=True)
     return path
 
 
