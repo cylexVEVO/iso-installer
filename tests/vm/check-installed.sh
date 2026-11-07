@@ -16,7 +16,17 @@ grep -E '(pond-pm-extension|pm-extension).*install' /tmp/pond-vm-commands.txt
 helium-browser --version
 python3 - <<'PY'
 import json
+import subprocess
 from pathlib import Path
+lock=json.loads(Path('/usr/share/pond-custom/sources.lock.json').read_text())
+for source, packages in {
+    'pond-interface': ('pond-shell', 'pond-lockscreen', 'pond-wallpaper', 'pond-screenshot', 'pond-grub-config', 'pond-plymouth-theme'),
+    'vicinae': ('pond-launcher',),
+    'package-manager': ('pond-pm', 'pond-pm-extension'),
+}.items():
+    for package in packages:
+        version=subprocess.check_output(['pacman','-Q',package],text=True).split()[1]
+        assert 'g'+lock[source]['commit'][:7] in version, (package,version)
 base=Path.home()/'.config'
 assert json.loads((base/'pond-interface/theme.json').read_text())['theme']=='north'
 wallpaper=json.loads((base/'pond-interface/wallpaper.json').read_text())

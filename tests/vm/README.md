@@ -6,6 +6,7 @@ hardware detection and boot setup. It accepts only a **blank `/dev/vda` disk wit
 serial `pond-vm-test`**, as root inside the installer live environment.
 
 Give QEMU a fresh >=40 GiB virtual disk with that serial, UEFI firmware, network,
+a 3D-accelerated VirtIO GPU (Niri needs a working EGL renderer),
 and a read-only 9p share named `pondtest` containing `install.py` and an ephemeral
 SSH public key named `vm-test.pub`. Do not use a physical disk. Boot the ISO with
 the test-only kernel argument `systemd.debug_shell=ttyS0` to obtain a root serial
@@ -19,7 +20,8 @@ python /run/pondtest/install.py
 
 The script installs a test user (`pondtest`, password `Pond-VM-Test-Only-1`) and,
 after the installation completes, enables key-authenticated SSH **only on the
-disposable test disk**. Neither the test user, debug shell, nor the SSH key is
+disposable test disk**, with a UFW exception restricted to the QEMU host
+(`10.0.2.2`). Neither the test user, debug shell, nor the SSH key is
 included in the rootfs/ISO build. The debug kernel argument is for the live boot
 only and is not part of the installed GRUB configuration.
 

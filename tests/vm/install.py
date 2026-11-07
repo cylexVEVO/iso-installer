@@ -36,6 +36,10 @@ try:
     (ssh / 'authorized_keys').chmod(0o600)
     subprocess.run(['arch-chroot', str(mount), 'chown', '-R', 'pondtest:pondtest', '/home/pondtest/.ssh'], check=True)
     subprocess.run(['arch-chroot', str(mount), 'systemctl', 'enable', 'sshd'], check=True)
+    # QEMU user networking reaches the guest from this address. The base image
+    # enables UFW; keep it enabled and permit SSH only from the test host.
+    subprocess.run(['arch-chroot', str(mount), 'ufw', 'allow', 'from', '10.0.2.2',
+                    'to', 'any', 'port', '22', 'proto', 'tcp'], check=True)
 finally:
     subprocess.run(['umount', str(mount)], check=True)
 print('VM_TEST_TRANSPORT_READY', flush=True)

@@ -1,7 +1,7 @@
 {
-  "sha256": "2b17d7f5495525a6e7374507ff0b5cef6756abbc70ead4574dae9593c48576e7",
+  "sha256": "62416c17624d47e9709a528e8ad5b1e65032283844b3cd22880458e8b9a7b51c",
   "urls": [
-    "https://github.com/cylexVEVO/pond-pkgbuilds/releases/download/rootfs-1.0.0/pond-rootfs.tar.zst.part-00",
-    "https://github.com/cylexVEVO/pond-pkgbuilds/releases/download/rootfs-1.0.0/pond-rootfs.tar.zst.part-01"
+    "https://github.com/cylexVEVO/pond-pkgbuilds/releases/download/rootfs-1.0.1/pond-rootfs.tar.zst.part-00",
+    "https://github.com/cylexVEVO/pond-pkgbuilds/releases/download/rootfs-1.0.1/pond-rootfs.tar.zst.part-01"
   ]
 }
