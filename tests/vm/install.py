@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""Guest-only acceptance harness. Never enabled in the distributed live profile.
+
+Attach a blank disk with serial 'pond-vm-test' and a read-only 9p 'pondtest' share
+containing this script plus vm-test.pub. Run as root in the booted installer ISO.
+The installer downloads and verifies its configured public release normally.
+"""
+import os
+from pathlib import Path
+import subprocess
+import sys
+sys.path.insert(0, '/usr/share/pond-installer')
+import backend
+from backend import storage
+from backend.model import ROOT_TYPE
+
+assert os.geteuid() == 0
+assert Path('/etc/pond-installer-live').is_file()
+assert subprocess.check_output(['lsblk', '-dn', '-o', 'SERIAL', '/dev/vda'], text=True).strip() == 'pond-vm-test'
+disk = next(disk for disk in storage.probe() if disk.path == '/dev/vda')
+assert not disk.partitions and not disk.busy, 'Only a blank test disk is accepted'
+plan = backend.plan_install(disk, backend.Mode.REPLACE, boot_mode=backend.current_boot_mode())
+profile = backend.Profile(username='pondtest', password='Pond-VM-Test-Only-1', hostname='pond-vm-test')
+backend.install(plan, profile, progress=lambda value: print(f'INSTALL_PROGRESS {value}', flush=True))
+print('INSTALL_SUCCEEDED', flush=True)
+# Test transport only: enable key-authenticated SSH on the disposable installed disk
+# so the host can inspect the running system. No test key goes into the release rootfs.
+rootpart = next(p for d in storage.probe() if d.path == '/dev/vda' for p in d.partitions if p.kind == ROOT_TYPE)
+mount = Path('/mnt/pond-vm-inspect')
+mount.mkdir()
+subprocess.run(['mount', '-o', 'subvol=@', rootpart.path, str(mount)], check=True)
+try:
+    ssh = mount / 'home/pondtest/.ssh'
+    ssh.mkdir(mode=0o700)
+    (ssh / 'authorized_keys').write_bytes((Path(__file__).parent / 'vm-test.pub').read_bytes())
+    (ssh / 'authorized_keys').chmod(0o600)
+    subprocess.run(['arch-chroot', str(mount), 'chown', '-R', 'pondtest:pondtest', '/home/pondtest/.ssh'], check=True)
+    subprocess.run(['arch-chroot', str(mount), 'systemctl', 'enable', 'sshd'], check=True)
+finally:
+    subprocess.run(['umount', str(mount)], check=True)
+print('VM_TEST_TRANSPORT_READY', flush=True)
